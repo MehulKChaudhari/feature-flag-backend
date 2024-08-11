@@ -58,7 +58,7 @@ func init() {
 
 	getUserFeatureFlagsFunctionName, found = os.LookupEnv("GetUserFeatureFlagsFunction")
 	if !found {
-		log.Println("get user feature flags function name not being set")
+		log.Println("get user feature flags function name not being set mehulllll")
 	}
 
 	getAllFeatureFlagsFunctionName, found = os.LookupEnv("GetAllFeatureFlagFunction")
@@ -88,7 +88,7 @@ func handler(ctx context.Context, event json.RawMessage) (events.APIGatewayProxy
 	var lambdaConcurrencyValue LambdaConcurrencyValue
 	if err := json.Unmarshal(event, &lambdaConcurrencyValue); err != nil {
 		return events.APIGatewayProxyResponse{
-			Body: "Unable to read input",
+			Body:       "Unable to read input",
 			StatusCode: http.StatusBadRequest,
 		}, nil
 	}
@@ -108,27 +108,27 @@ func handler(ctx context.Context, event json.RawMessage) (events.APIGatewayProxy
 	for _, functionName := range request.FunctionNames {
 		// Increment the WaitGroup counter
 		wg.Add(1)
-	
+
 		// Start a goroutine to update the concurrency for the Lambda function
 		go func(fn string) {
 			defer wg.Done()
-	
+
 			input := &lambda.PutFunctionConcurrencyInput{
 				FunctionName:                 &fn,
 				ReservedConcurrentExecutions: aws.Int64(int64(lambdaConcurrencyValue.IntValue)),
 			}
-	
+
 			log.Println("Is the function name", fn)
 			_, err := lambdaClient.PutFunctionConcurrency(input)
 			if err != nil {
 				log.Printf("Error in setting the concurrency for the lambda name %s: %v", fn, err)
 				utils.ServerError(err)
 			}
-	
+
 			log.Printf("Changed the reserved concurrency for the function %s to %d", fn, lambdaConcurrencyValue.IntValue)
 		}(functionName)
 	}
-	
+
 	// Wait for all goroutines to finish
 	wg.Wait()
 	return events.APIGatewayProxyResponse{
