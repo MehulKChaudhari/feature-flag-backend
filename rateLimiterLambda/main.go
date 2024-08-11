@@ -58,7 +58,7 @@ func init() {
 
 	getUserFeatureFlagsFunctionName, found = os.LookupEnv("GetUserFeatureFlagsFunction")
 	if !found {
-		log.Println("get user feature flags function name not being set mehulllll")
+		log.Println("get user feature flags function name not being set")
 	}
 
 	getAllFeatureFlagsFunctionName, found = os.LookupEnv("GetAllFeatureFlagFunction")
