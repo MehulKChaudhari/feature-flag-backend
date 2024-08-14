@@ -13,53 +13,15 @@ Globals:
           - IsProd
           - "rds-session"
           - "rds-session-staging"
-        CreateFeatureFlagFunction: !If
-          - IsProd
-          - FeatureFlagBackendProdLam-CreateFeatureFlagFunctio-YOVQpOQ9W4hR
-          - feature-flag-staging-CreateFeatureFlagFunction-jtNqeZdpSPyX
-        CreateUserFeatureFlagFunction: !If
-          - IsProd
-          - FeatureFlagBackendProdLam-CreateUserFeatureFlagFun-Fi1GnCD4KsBu
-          - feature-flag-staging-CreateUserFeatureFlagFunction-STwgvxNezRhr
-        GetFeatureFlagFunction: !If
-          - IsProd
-          - FeatureFlagBackendProdLambd-GetFeatureFlagFunction-I2kT1C4qt7i8
-          - feature-flag-staging-GetFeatureFlagFunction-0J7rpugeOdU5
-        GetAllFeatureFlagFunction: !If
-          - IsProd
-          - FeatureFlagBackendProdLam-GetAllFeatureFlagFunctio-kqYPpHWHnPqR
-          - feature-flag-staging-GetAllFeatureFlagFunction-ey71dNmZRDOp
-        UpdateFeatureFlagFunction: !If
-          - IsProd
-          - FeatureFlagBackendProdLam-UpdateFeatureFlagFunctio-9g8Vbr3cPzHL
-          - feature-flag-staging-UpdateFeatureFlagFunction-Kyi46ClC6I4R
-        UpdateUserFeatureFlagFunction: !If
-          - IsProd
-          - FeatureFlagBackendProdLam-UpdateUserFeatureFlagFun-FkeJ3SHwYIjo
-          - feature-flag-staging-UpdateUserFeatureFlagFunction-CmettJMSor9w
-        GetUserFeatureFlagsFunction: !If
-          - IsProd
-          - FeatureFlagBackendProdLam-GetUserFeatureFlagsFunct-Qj4UvchESEwz
-          - feature-flag-staging-GetUserFeatureFlagsFunction-ajPGREFbovxq
-        GetUserFeatureFlagFunction: !If
-          - IsProd
-          - FeatureFlagBackendProdLam-GetUserFeatureFlagFuncti-X4iHFCSiLo92
-          - feature-flag-staging-GetUserFeatureFlagFunction-8NRHy9k0q5M4
-        RateLimiterFunction: !If
-          - IsProd
-          - FeatureFlagBackendProdLambdas-RateLimiterFunction-WubbBb4Naxsm
-          - feature-flag-staging-RateLimiterFunction-7tOfBleMOdAA
-
-Conditions:
-  IsProd: !Equals [!Ref Environment, "PRODUCTION"]
-
-Parameters:
-  Environment:
-    Type: String
-    Default: "PRODUCTION"
-    AllowedValues:
-      - "PRODUCTION"
-      - "DEVELOPMENT"
+        CreateFeatureFlagFunction: feature-flag-staging-CreateFeatureFlagFunction-GLqsDX4z4A0B
+        CreateUserFeatureFlagFunction: feature-flag-staging-CreateUserFeatureFlagFunction-NjEzqqsMA8LK
+        GetFeatureFlagFunction: feature-flag-staging-GetFeatureFlagFunction-Q3JCLpJDDnjr
+        GetAllFeatureFlagFunction: feature-flag-staging-GetAllFeatureFlagFunction-8ariY7nVTu5w
+        UpdateFeatureFlagFunction: feature-flag-staging-UpdateFeatureFlagFunction-eggMge9a83Tn
+        UpdateUserFeatureFlagFunction: feature-flag-staging-UpdateUserFeatureFlagFunction-zGVRDCT0RJk0
+        GetUserFeatureFlagsFunction: feature-flag-staging-GetUserFeatureFlagsFunction-RLHwvNvwaUbR
+        GetUserFeatureFlagFunction: feature-flag-staging-GetUserFeatureFlagFunction-OzFzkaYOmTP8
+        RateLimiterFunction: feature-flag-staging-RateLimiterFunction-2nxS9nVacqzr
 
 Resources:
   HealthCheckFunction:
