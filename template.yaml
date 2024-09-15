@@ -23,6 +23,17 @@ Globals:
         GetUserFeatureFlagFunction: feature-flag-staging-GetUserFeatureFlagFunction-OzFzkaYOmTP8
         RateLimiterFunction: feature-flag-staging-RateLimiterFunction-2nxS9nVacqzr
 
+Conditions:
+  IsProd: !Equals [!Ref Environment, "PRODUCTION"]
+
+Parameters:
+  Environment:
+    Type: String
+    Default: "PRODUCTION"
+    AllowedValues:
+      - "PRODUCTION"
+      - "DEVELOPMENT"
+
 Resources:
   HealthCheckFunction:
     Type: 'AWS::Serverless::Function'
