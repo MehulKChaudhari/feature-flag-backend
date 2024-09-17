@@ -40,7 +40,7 @@ func CreateDynamoDB() *dynamodb.DynamoDB {
 	var err error
 
 	if db == nil {
-		if env == utils.DEV || env == utils.TEST {
+		if env == utils.TEST {
 			sess, err = session.NewSession(&aws.Config{
 				Region:   aws.String(os.Getenv("AWS_REGION")),
 				Endpoint: aws.String("http://host.docker.internal:8000"),
