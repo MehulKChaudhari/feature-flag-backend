@@ -1,7 +1,7 @@
 Transform: 'AWS::Serverless-2016-10-31'
 Globals:
   Function:
-    Timeout: 10
+    Timeout: 30
     Environment:
       Variables:
         ENVIRONMENT: PRODUCTION
