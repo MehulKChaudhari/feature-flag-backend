@@ -17,11 +17,7 @@ var db *dynamodb.DynamoDB
 var marshalMapFunction = dynamodbattribute.MarshalMap
 var unmarshalMapFunction = dynamodbattribute.UnmarshalMap
 
-func init() {
-	env := os.Getenv(utils.ENV)
-	log.Println("ENV=", env)
-}
-
+// Initializes DynamoDB connection
 func CreateDynamoDB() *dynamodb.DynamoDB {
 	defer func() {
 		if err := recover(); err != nil {
@@ -29,43 +25,31 @@ func CreateDynamoDB() *dynamodb.DynamoDB {
 		}
 	}()
 
-	env, found := os.LookupEnv(utils.ENV)
-	if !found {
-		log.Println("ENV is not set, please store it.")
-
-		utils.ServerError(errors.New("Env is not set, please set DEVELOPMENT or PRODUCTION"))
+	// Fetch the region from the environment variable
+	awsRegion := os.Getenv("AWS_REGION")
+	if awsRegion == "" {
+		log.Println("AWS_REGION environment variable is not set")
+		utils.ServerError(errors.New("AWS_REGION is not set, please configure it"))
 	}
 
-	var sess *session.Session
-	var err error
-
+	// Create a new DynamoDB session
 	if db == nil {
-		if env == utils.DEV || env == utils.TEST {
-			sess, err = session.NewSession(&aws.Config{
-				Region:   aws.String(os.Getenv("AWS_REGION")),
-				Endpoint: aws.String("http://host.docker.internal:8000"),
-			})
+		sess, err := session.NewSession(&aws.Config{
+			Region: aws.String(awsRegion),
+		})
 
-			if err != nil {
-				log.Printf("Error creating the dynamodb session in DEV env \n %v", err)
-				utils.ServerError(errors.New("Error creating dynamodb session in DEV env"))
-			}
-
-		} else { //ENV = PROD
-
-			sess, err = session.NewSession()
-
-			if err != nil {
-				log.Printf("Error creating the dynamodb session in PROD env \n %v", err)
-				utils.ServerError(errors.New("Error creating dynamodb session in PROD env"))
-			}
+		if err != nil {
+			log.Printf("Error creating the dynamodb session: \n %v", err)
+			utils.ServerError(errors.New("Error creating DynamoDB session"))
 		}
+
 		db = dynamodb.New(sess)
 	}
 
 	return db
 }
 
+// MarshalMap converts struct to DynamoDB map
 func MarshalMap(input interface{}) (map[string]*dynamodb.AttributeValue, error) {
 	item, err := marshalMapFunction(input)
 	if err != nil {
@@ -74,6 +58,7 @@ func MarshalMap(input interface{}) (map[string]*dynamodb.AttributeValue, error) 
 	return item, nil
 }
 
+// UnmarshalMap converts DynamoDB map to struct
 func UnmarshalMap(input map[string]*dynamodb.AttributeValue, targetStruct interface{}) error {
 	err := unmarshalMapFunction(input, &targetStruct)
 	if err != nil {
@@ -82,29 +67,9 @@ func UnmarshalMap(input map[string]*dynamodb.AttributeValue, targetStruct interf
 	return nil
 }
 
-func createTables(db *dynamodb.DynamoDB, schemas []dynamodb.CreateTableInput) error {
-	for _, schema := range schemas {
-		input := &dynamodb.CreateTableInput{
-			TableName:             schema.TableName,
-			KeySchema:             schema.KeySchema,
-			AttributeDefinitions:  schema.AttributeDefinitions,
-			ProvisionedThroughput: schema.ProvisionedThroughput,
-		}
-
-		_, err := db.CreateTable(input)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
+// Function to process feature flag retrieval by hash key
 func ProcessGetFeatureFlagByHashKey(attributeName string, attributeValue string) (*utils.FeatureFlagResponse, error) {
-
 	db := CreateDynamoDB()
-
-	utils.CheckRequestAllowed(db, utils.ConcurrencyDisablingLambda)
 
 	input := &dynamodb.GetItemInput{
 		TableName: aws.String(utils.FEATURE_FLAG_TABLE_NAME),
@@ -116,7 +81,6 @@ func ProcessGetFeatureFlagByHashKey(attributeName string, attributeValue string)
 	}
 
 	result, err := db.GetItem(input)
-
 	if err != nil {
 		utils.DdbError(err)
 		return nil, err
@@ -136,6 +100,7 @@ func ProcessGetFeatureFlagByHashKey(attributeName string, attributeValue string)
 	return featureFlagResponse, nil
 }
 
+// Function to add user-feature flag mappings
 func AddUserFeatureFlagMapping(featureFlagUserMappings []models.FeatureFlagUserMapping) ([]models.FeatureFlagUserMapping, error) {
 	db := CreateDynamoDB()
 
