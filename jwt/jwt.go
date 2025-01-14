@@ -12,7 +12,11 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/Real-Dev-Squad/feature-flag-backend/utils"
 	"github.com/aws/aws-lambda-go/events"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -21,13 +25,6 @@ var (
 	initError        error
 	once             sync.Once
 )
-
-const publicKeyString = `-----BEGIN PUBLIC KEY-----
-MIGeMA0GCSqGSIb3DQEBAQUAA4GMADCBiAKBgHo6sGbw8qk+XU9sBVa4w2aEq01i
-oKDMFFQa9mPy0MRScTCsrfEjbypD4VqIjJcwXGmDWKVhMcJ8SMZuJumIJ10vU9ca
-WSh/aHhAxiOIqOEe54IyYTwjcn5avdZry3zl62RYQ7tDZCPAR/WvFCIkgRXwjXfC
-Xpm4LR6ynKDMvsDNAgMBAAE=
------END PUBLIC KEY-----`
 
 type JWTUtils struct {
 	publicKey *rsa.PublicKey
@@ -58,6 +55,11 @@ func (j *JWTUtils) initialize() error {
 		return errors.New("internal server error")
 	}
 
+	publicKeyString, err := getPublicKeyFromParameterStore("publickey")
+	if err != nil {
+		return err
+	}
+
 	block, _ := pem.Decode([]byte(publicKeyString))
 	if block == nil {
 		return errors.New("internal server error")
@@ -75,6 +77,26 @@ func (j *JWTUtils) initialize() error {
 
 	j.publicKey = rsaPublicKey
 	return nil
+}
+
+func getPublicKeyFromParameterStore(parameterName string) (string, error) {
+	sess, err := session.NewSession()
+	if err != nil {
+		return "", err
+	}
+
+	svc := ssm.New(sess)
+	input := &ssm.GetParameterInput{
+		Name:           aws.String(parameterName),
+		WithDecryption: aws.Bool(true),
+	}
+
+	result, err := svc.GetParameter(input)
+	if err != nil {
+		return "", err
+	}
+
+	return *result.Parameter.Value, nil
 }
 
 func (j *JWTUtils) ValidateToken(tokenString string) (jwt.MapClaims, error) {
@@ -138,9 +160,9 @@ func JWTMiddleware() func(req events.APIGatewayProxyRequest) (events.APIGatewayP
 
 		cookieName := os.Getenv("SESSION_COOKIE_NAME")
 		if cookieName == "" {
-			cookieName = "rds-development-session"
-		}
+			cookieName = utils.DEVELOPMENT_COOKIE_NAME
 
+		}
 		var jwtToken string
 		cookies := strings.Split(cookie, ";")
 		for _, c := range cookies {
