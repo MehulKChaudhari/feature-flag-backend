@@ -3,7 +3,7 @@ package middleware
 import (
 	"log"
 	"net/http"
-	"strings"
+	"regexp"
 
 	"github.com/aws/aws-lambda-go/events"
 )
@@ -19,10 +19,13 @@ func CORSMiddleware() func(req events.APIGatewayProxyRequest) (events.APIGateway
 			}, nil
 		}
 
-		if strings.HasSuffix(origin, ".realdevsquad.com") ||
-			origin == "https://realdevsquad.com" ||
-			origin == "http://127.0.0.1:3000" ||
-			origin == "http://localhost:8080" {
+		rdsPattern := `^https?://([a-zA-Z0-9-]+\.)*realdevsquad\.com$`
+		isRDSDomain, err := regexp.MatchString(rdsPattern, origin)
+		if err != nil {
+			log.Printf("Error matching RDS domain: %v", err)
+		}
+
+		if isRDSDomain {
 
 			if req.HTTPMethod == "OPTIONS" {
 				return events.APIGatewayProxyResponse{
@@ -32,6 +35,8 @@ func CORSMiddleware() func(req events.APIGatewayProxyRequest) (events.APIGateway
 						"Access-Control-Allow-Methods":     "GET, POST, PUT, DELETE, OPTIONS",
 						"Access-Control-Allow-Headers":     "Authorization, Content-Type, Cache-Control",
 						"Access-Control-Allow-Credentials": "true",
+						"Access-Control-Expose-Headers":    "Set-Cookie",
+						"Vary":                             "Origin",
 					},
 					Body: "",
 				}, nil
@@ -44,6 +49,8 @@ func CORSMiddleware() func(req events.APIGatewayProxyRequest) (events.APIGateway
 					"Access-Control-Allow-Methods":     "GET, POST, PUT, DELETE, OPTIONS",
 					"Access-Control-Allow-Headers":     "Authorization, Content-Type, Cache-Control",
 					"Access-Control-Allow-Credentials": "true",
+					"Access-Control-Expose-Headers":    "Set-Cookie",
+					"Vary":                             "Origin",
 				},
 			}, nil
 		}

@@ -201,6 +201,7 @@ func JWTMiddleware() func(req events.APIGatewayProxyRequest) (events.APIGatewayP
 			}
 		}
 
+		}
 		var jwtToken string
 		cookies := strings.Split(cookie, ";")
 		for _, c := range cookies {
