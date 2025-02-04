@@ -3,7 +3,7 @@ module getFeatureFlagById
 go 1.20
 
 require (
-	github.com/Real-Dev-Squad/feature-flag-backend v0.0.0-20240917210149-e260836ef784
+	github.com/Real-Dev-Squad/feature-flag-backend v0.0.0-20250121203708-a49b2080c46c
 	github.com/aws/aws-lambda-go v1.41.0
 )
 
